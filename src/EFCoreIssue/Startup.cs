@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,13 +33,16 @@ namespace EFCoreIssue
 
       services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
       {
-        options.Cookies.ApplicationCookie.AutomaticChallenge = false;
-        options.Cookies.ApplicationCookie.CookieHttpOnly = true;
-        options.Cookies.ApplicationCookie.CookieSecure = CookieSecurePolicy.SameAsRequest; // Always wäre ja schöner, ist aber für Tests und Debugging schwierig
         options.Password.RequireNonAlphanumeric = false;
       })
-        .AddEntityFrameworkStores<ApplicationDbContext, long>()
+        .AddEntityFrameworkStores<ApplicationDbContext>()
         .AddDefaultTokenProviders();
+
+      services.ConfigureApplicationCookie(options =>
+      {
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // Always wäre ja schöner, ist aber für Tests und Debugging schwierig
+      });
 
       services.AddMvc();
     }
@@ -57,7 +61,7 @@ namespace EFCoreIssue
 
       app.UseStaticFiles();
 
-      app.UseIdentity();
+      app.UseAuthentication();
 
       app.UseMvc(routes =>
       {
